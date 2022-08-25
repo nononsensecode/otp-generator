@@ -11,10 +11,6 @@ var (
 	ErrStale          = fmt.Errorf("otp is already stale")
 )
 
-type TimeProvider interface {
-	Now() time.Time
-}
-
 type OtpGenerator func(length int) (string, error)
 
 type CurrentTimeProvider func() time.Time
