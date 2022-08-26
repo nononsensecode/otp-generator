@@ -30,20 +30,10 @@ func Test_Equality_With_Staling(t *testing.T) {
 			maxResendAttempts: 3,
 			duration:          3 * time.Minute,
 			isStale:           false,
-			timeProvider: func() time.Time {
-				t := giveTime("25/08/2022 08:26:00")
-				return t
-			},
-			otpToCheck:     "12345",
-			wantedEquality: true,
-			wantedData: otp.OtpData{
-				CreatedOn:         giveTime("25/08/2022 08:25:00"),
-				Otp:               "12345",
-				ExpiryDuration:    3 * time.Minute,
-				ResendAttempts:    1,
-				MaxResendAttempts: 3,
-				Stale:             true,
-			},
+			timeProvider:      timeProvider("25/08/2022 08:26:00"),
+			otpToCheck:        "12345",
+			wantedEquality:    true,
+			wantedData:        newOtpData("12345", "25/08/2022 08:25:00", 3*time.Minute, 1, 3, true),
 		},
 		"otp is not equal": {
 			createdOn:         giveTime("25/08/2022 08:25:00"),
@@ -52,20 +42,10 @@ func Test_Equality_With_Staling(t *testing.T) {
 			maxResendAttempts: 3,
 			duration:          3 * time.Minute,
 			isStale:           false,
-			timeProvider: func() time.Time {
-				t := giveTime("25/08/2022 08:26:00")
-				return t
-			},
-			otpToCheck:     "34567",
-			wantedEquality: false,
-			wantedData: otp.OtpData{
-				CreatedOn:         giveTime("25/08/2022 08:25:00"),
-				Otp:               "12345",
-				ExpiryDuration:    3 * time.Minute,
-				ResendAttempts:    1,
-				MaxResendAttempts: 3,
-				Stale:             true,
-			},
+			timeProvider:      timeProvider("25/08/2022 08:26:00"),
+			otpToCheck:        "34567",
+			wantedEquality:    false,
+			wantedData:        newOtpData("12345", "25/08/2022 08:25:00", 3*time.Minute, 1, 3, true),
 		},
 		"otp is already stale": {
 			createdOn:         giveTime("25/08/2022 08:25:00"),
@@ -74,20 +54,10 @@ func Test_Equality_With_Staling(t *testing.T) {
 			maxResendAttempts: 3,
 			duration:          3 * time.Minute,
 			isStale:           true,
-			timeProvider: func() time.Time {
-				t := giveTime("25/08/2022 08:26:00")
-				return t
-			},
-			otpToCheck:     "12345",
-			wantedEquality: false,
-			wantedData: otp.OtpData{
-				CreatedOn:         giveTime("25/08/2022 08:25:00"),
-				Otp:               "12345",
-				ExpiryDuration:    3 * time.Minute,
-				ResendAttempts:    1,
-				MaxResendAttempts: 3,
-				Stale:             true,
-			},
+			timeProvider:      timeProvider("25/08/2022 08:26:00"),
+			otpToCheck:        "12345",
+			wantedEquality:    false,
+			wantedData:        newOtpData("12345", "25/08/2022 08:25:00", 3*time.Minute, 1, 3, true),
 		},
 
 		"otp is stale as it is expired": {
@@ -97,20 +67,10 @@ func Test_Equality_With_Staling(t *testing.T) {
 			maxResendAttempts: 3,
 			duration:          3 * time.Minute,
 			isStale:           false,
-			timeProvider: func() time.Time {
-				t := giveTime("25/08/2022 08:29:00")
-				return t
-			},
-			otpToCheck:     "12345",
-			wantedEquality: false,
-			wantedData: otp.OtpData{
-				CreatedOn:         giveTime("25/08/2022 08:25:00"),
-				Otp:               "12345",
-				ExpiryDuration:    3 * time.Minute,
-				ResendAttempts:    1,
-				MaxResendAttempts: 3,
-				Stale:             true,
-			},
+			timeProvider:      timeProvider("25/08/2022 08:29:00"),
+			otpToCheck:        "12345",
+			wantedEquality:    false,
+			wantedData:        newOtpData("12345", "25/08/2022 08:25:00", 3*time.Minute, 1, 3, true),
 		},
 
 		"otp is stale as resend attempt exceeded": {
@@ -120,20 +80,10 @@ func Test_Equality_With_Staling(t *testing.T) {
 			maxResendAttempts: 3,
 			duration:          3 * time.Minute,
 			isStale:           false,
-			timeProvider: func() time.Time {
-				t := giveTime("25/08/2022 08:26:00")
-				return t
-			},
-			otpToCheck:     "12345",
-			wantedEquality: false,
-			wantedData: otp.OtpData{
-				CreatedOn:         giveTime("25/08/2022 08:25:00"),
-				Otp:               "12345",
-				ExpiryDuration:    3 * time.Minute,
-				ResendAttempts:    3,
-				MaxResendAttempts: 3,
-				Stale:             true,
-			},
+			timeProvider:      timeProvider("25/08/2022 08:26:00"),
+			otpToCheck:        "12345",
+			wantedEquality:    false,
+			wantedData:        newOtpData("12345", "25/08/2022 08:25:00", 3*time.Minute, 3, 3, true),
 		},
 	}
 

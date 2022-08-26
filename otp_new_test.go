@@ -14,6 +14,30 @@ func giveTime(asString string) time.Time {
 	return t
 }
 
+func newOtpData(otpVal string, createdOn string, duration time.Duration,
+	resendAttempts, maxResendAttempts int, isStale bool) otp.OtpData {
+	return otp.OtpData{
+		Otp:               otpVal,
+		CreatedOn:         giveTime(createdOn),
+		ExpiryDuration:    duration,
+		ResendAttempts:    resendAttempts,
+		MaxResendAttempts: maxResendAttempts,
+		Stale:             isStale,
+	}
+}
+
+func timeProvider(t string) func() time.Time {
+	return func() time.Time {
+		return giveTime(t)
+	}
+}
+
+func generator(otpVal string, err error) func(int) (string, error) {
+	return func(length int) (string, error) {
+		return otpVal, err
+	}
+}
+
 func Test_New(t *testing.T) {
 	t.Parallel()
 
@@ -27,36 +51,19 @@ func Test_New(t *testing.T) {
 		wantedData        otp.OtpData
 	}{
 		"new otp creation success": {
-			timeProvider: func() time.Time {
-				t := giveTime("25/08/2022 08:25:00")
-				return t
-			},
-			duration: 3 * time.Minute,
-			generator: func(length int) (string, error) {
-				return "12345", nil
-			},
+			timeProvider:      timeProvider("25/08/2022 08:25:00"),
+			duration:          3 * time.Minute,
+			generator:         generator("12345", nil),
 			length:            5,
 			maxResendAttempts: 3,
 			wantedErr:         nil,
-			wantedData: otp.OtpData{
-				Otp:               "12345",
-				CreatedOn:         giveTime("25/08/2022 08:25:00"),
-				ExpiryDuration:    3 * time.Minute,
-				ResendAttempts:    1,
-				MaxResendAttempts: 3,
-				Stale:             false,
-			},
+			wantedData:        newOtpData("12345", "25/08/2022 08:25:00", 3*time.Minute, 1, 3, false),
 		},
 
 		"new otp creation return otp generator error": {
-			timeProvider: func() time.Time {
-				t := giveTime("25/08/2022 08:25:00")
-				return t
-			},
-			duration: 3 * time.Minute,
-			generator: func(length int) (string, error) {
-				return "", fmt.Errorf("unknown generator error")
-			},
+			timeProvider:      timeProvider("25/08/2022 08:25:00"),
+			duration:          3 * time.Minute,
+			generator:         generator("", fmt.Errorf("unknown generator error")),
 			length:            5,
 			maxResendAttempts: 3,
 			wantedErr:         fmt.Errorf("unknown generator error"),

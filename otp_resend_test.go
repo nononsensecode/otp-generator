@@ -32,20 +32,10 @@ func Test_Resendable(t *testing.T) {
 			resendAttempts:    1,
 			maxResendAttempts: 3,
 			isStale:           false,
-			timeProvider: func() time.Time {
-				t := giveTime("25/08/2022 08:26:00")
-				return t
-			},
-			generator: func(length int) (string, error) { return "34567", nil },
-			wantedErr: nil,
-			wantedData: otp.OtpData{
-				Otp:               "34567",
-				CreatedOn:         giveTime("25/08/2022 08:25:00"),
-				ExpiryDuration:    3 * time.Minute,
-				ResendAttempts:    2,
-				MaxResendAttempts: 3,
-				Stale:             false,
-			},
+			timeProvider:      timeProvider("25/08/2022 08:26:00"),
+			generator:         generator("34567", nil),
+			wantedErr:         nil,
+			wantedData:        newOtpData("34567", "25/08/2022 08:25:00", 3*time.Minute, 2, 3, false),
 		},
 
 		"resendable returns stale error": {
@@ -55,20 +45,10 @@ func Test_Resendable(t *testing.T) {
 			resendAttempts:    1,
 			maxResendAttempts: 3,
 			isStale:           true,
-			timeProvider: func() time.Time {
-				t := giveTime("25/08/2022 08:29:00")
-				return t
-			},
-			generator: func(length int) (string, error) { return "34567", nil },
-			wantedErr: otp.ErrStale,
-			wantedData: otp.OtpData{
-				Otp:               "12345",
-				CreatedOn:         giveTime("25/08/2022 08:25:00"),
-				ExpiryDuration:    3 * time.Minute,
-				ResendAttempts:    1,
-				MaxResendAttempts: 3,
-				Stale:             true,
-			},
+			timeProvider:      timeProvider("25/08/2022 08:29:00"),
+			generator:         generator("34567", nil),
+			wantedErr:         otp.ErrStale,
+			wantedData:        newOtpData("12345", "25/08/2022 08:25:00", 3*time.Minute, 1, 3, true),
 		},
 
 		"resendable returns expiry error": {
@@ -78,20 +58,10 @@ func Test_Resendable(t *testing.T) {
 			resendAttempts:    1,
 			maxResendAttempts: 3,
 			isStale:           false,
-			timeProvider: func() time.Time {
-				t := giveTime("25/08/2022 08:29:00")
-				return t
-			},
-			generator: func(length int) (string, error) { return "34567", nil },
-			wantedErr: otp.ErrExpiry,
-			wantedData: otp.OtpData{
-				Otp:               "12345",
-				CreatedOn:         giveTime("25/08/2022 08:25:00"),
-				ExpiryDuration:    3 * time.Minute,
-				ResendAttempts:    1,
-				MaxResendAttempts: 3,
-				Stale:             true,
-			},
+			timeProvider:      timeProvider("25/08/2022 08:29:00"),
+			generator:         generator("34567", nil),
+			wantedErr:         otp.ErrExpiry,
+			wantedData:        newOtpData("12345", "25/08/2022 08:25:00", 3*time.Minute, 1, 3, true),
 		},
 
 		"resendable returns resend exceeds error": {
@@ -101,20 +71,10 @@ func Test_Resendable(t *testing.T) {
 			resendAttempts:    3,
 			maxResendAttempts: 3,
 			isStale:           false,
-			timeProvider: func() time.Time {
-				t := giveTime("25/08/2022 08:28:00")
-				return t
-			},
-			generator: func(length int) (string, error) { return "34567", nil },
-			wantedErr: otp.ErrResendExcceded,
-			wantedData: otp.OtpData{
-				Otp:               "12345",
-				CreatedOn:         giveTime("25/08/2022 08:25:00"),
-				ExpiryDuration:    3 * time.Minute,
-				ResendAttempts:    3,
-				MaxResendAttempts: 3,
-				Stale:             true,
-			},
+			timeProvider:      timeProvider("25/08/2022 08:28:00"),
+			generator:         generator("34567", nil),
+			wantedErr:         otp.ErrResendExcceded,
+			wantedData:        newOtpData("12345", "25/08/2022 08:25:00", 3*time.Minute, 3, 3, true),
 		},
 
 		"resendable returns otp generation error": {
@@ -124,20 +84,10 @@ func Test_Resendable(t *testing.T) {
 			resendAttempts:    1,
 			maxResendAttempts: 3,
 			isStale:           false,
-			timeProvider: func() time.Time {
-				t := giveTime("25/08/2022 08:26:00")
-				return t
-			},
-			generator: func(length int) (string, error) { return "", fmt.Errorf("i can't create otp") },
-			wantedErr: fmt.Errorf("i can't create otp"),
-			wantedData: otp.OtpData{
-				Otp:               "12345",
-				CreatedOn:         giveTime("25/08/2022 08:25:00"),
-				ExpiryDuration:    3 * time.Minute,
-				ResendAttempts:    1,
-				MaxResendAttempts: 3,
-				Stale:             false,
-			},
+			timeProvider:      timeProvider("25/08/2022 08:26:00"),
+			generator:         generator("", fmt.Errorf("i can't create otp")),
+			wantedErr:         fmt.Errorf("i can't create otp"),
+			wantedData:        newOtpData("12345", "25/08/2022 08:25:00", 3*time.Minute, 1, 3, false),
 		},
 	}
 
